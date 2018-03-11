@@ -1,0 +1,359 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>[HELPER2X]F2K Controller</title>
+    <link rel="shortcut Icon" href="/default/Public/img/ico.ico" type="image/x-icon"/>
+    <link href="/default/Public/css/css.css" rel="stylesheet">
+    <link href="/default/Public/css/icon.css" rel="stylesheet">
+    <script src="/default/Public/js/jquery.min.js"></script>
+    <script language="JavaScript" type="text/javascript">
+        <!--
+        var mouseX = 0;
+        var p_key = 0;
+        var act = 0;
+
+        function KeyPress(e) {
+            p_key = e;
+            if (p_key == 16) // shift -- focus
+                act = 3;
+            else if (p_key == 17) // ctrl -- remove
+                act = 4;
+            else if (p_key == 81) // q -- enqueue
+                act = 1;
+            else if (p_key == 87) // w -- dequeue
+                act = 2;
+            else
+                act = 0;
+            document.getElementById('Actions').selectedIndex = act;
+        }
+
+        function pad(str, chr, count) {
+            var str_out = str.toString();
+            while (str_out.length < count)
+                str_out = chr + str_out;
+            return str_out;
+        }
+
+        function pc(c, p) {
+            var com = c || '';
+            var par = p || '';
+            with (document.cmd_form) {
+                cmd.value = com;
+                param1.value = par;
+                submit();
+            }
+        }
+
+        function format_time(time) {
+            mins = Math.floor(time / 60);
+            secs = pad(time % 60, '0', 2);
+            return mins + ":" + secs;
+        }
+
+        function set_t_pos(time) {
+            var str = format_time(time) + " / ";
+            document.getElementById("t_time").innerHTML = str + ( [ITEM_PLAYING_LEN] > 0 ? format_time([ITEM_PLAYING_LEN]) : '?' );
+        }
+
+        function set_np_width(t_sec, t_length) {
+            var np_width = document.getElementById("npd").offsetWidth;
+            np_width = np_width < 100 ? 100 : np_width;
+            document.getElementById('np').style.width = Math.floor(np_width * t_sec / t_length) + "px";
+        }
+
+        function t_playback_timer(t_sec, t_length) {
+            if (t_sec <= t_length && t_length != 0) {
+                set_t_pos(t_sec);
+                if (t_length != 0)
+                    set_np_width(t_sec, t_length);
+                setTimeout('t_playback_timer(' + (t_sec + 1) + ',' + t_length + ')', 1000);
+            }
+        }
+
+        function a(track) { // do a(ction) on clicked entry
+            if (act == 0) pc('Start', track);
+            else if (act == 1) pc('QueueItems', track);
+            else if (act == 2) pc('DequeueItems', track);
+            else if (act == 3) pc('SetFocus', track);
+            else if (act == 4) pc('Del', track);
+        }
+
+        function np_onclick() {
+            with (document)
+                pc('Seek', Math.round((mouseX - getElementById("np").offsetLeft) * 100 / (getElementById("npd").offsetWidth)));
+        }
+
+        function mouse_capture_init() {
+            if (document.layers ? true : false)
+                captureEvents(Event.MOUSEMOVE)
+            document.onmousemove = handleMouseMove;
+        }
+
+        function handleMouseMove(evt) {
+            if (evt)
+                mouseX = evt.clientX;
+            else if (event)
+                mouseX = event.x;
+            return false;
+        }
+
+        function fit() {
+            with (document.getElementById('playlist')) {
+                style.position = 'static'; // important for the onresize event
+                style.overflowY = 'auto';
+                style.top = offsetTop + 'px';
+                style.left = offsetLeft + 'px';
+                style.right = offsetLeft + 'px';
+                style.bottom = '8px'; // fit this to your taste
+                style.position = 'fixed';
+
+                var npelem = document.getElementById("nowplaying");
+                if (npelem) {
+                    scrolltop = npelem.offsetTop - offsetHeight / 2;
+
+                    if (scrolltop > 0)
+                        scrollTop = scrolltop;
+                }
+            }
+        }
+
+        document.onkeydown = function (evt) {
+            KeyPress(evt ? evt.keyCode : event.keyCode);
+        }
+        //-->
+    </script>
+    <style type="text/css">
+        <!--
+        .npc {
+            position         : absolute;
+            left             : auto;
+            width            : 0;
+            height           : 15px;
+            top              : auto;
+            opacity          : .50;
+            background-color : #AAA;
+            }
+        .track {
+            padding   : 5px;
+            font-size : 12px;
+            }
+        a {
+            color : #FFF;
+            }
+        .inline-form > div {
+            margin-top : 10px;
+            }
+        .bar-fix {
+            margin-left : -8px;
+            }
+        table {
+            color : #FFF;
+            width : 100%;
+            }
+        table tr {
+            border-top    : 1px solid #FFF;
+            border-bottom : 1px solid #FFF;
+            }
+        table tr td {
+            padding-top    : 5px;
+            padding-bottom : 5px;
+            }
+        @media screen and (max-width : 576px) {
+            table tr td {
+                font-size : smaller;
+                }
+            .bar-fix {
+                margin-left : 0;
+                }
+            }
+        -->
+    </style>
+</head>
+<body onload="mouse_capture_init(); fit();" onresize="fit();" class="bg-dark">
+<div class="container-fluid">
+    <div class="text-center my-2">
+        <img src="[ALBUMART]" class="img-fluid" width="200px" onclick="pc();">
+    </div>
+    <div class="text-white text-center">
+        <p id="trackInfo">[HELPER1X]</p>
+        <p><span id="status"></span><span class="ml-2">[HELPER3X]</span></p>
+    </div>
+</div>
+<div class="container">
+    <p id="npstr" class="bg-white">
+    <span id="npd" style="white-space: nowrap;" onclick="np_onclick();">
+        <span id="np" class="npc bar-fix"></span>
+        <span id="t_time" class="track px-0 text-center" style="display: inline-block; width: 100%"></span>
+    </span>
+    </p>
+</div>
+<form action="/default/" method="get" name="cmd_form" target="_self" class="frm">
+    <div>
+        <div class="container">
+            <div class="text-center">
+                <button type="button" class="btn btn-danger" onclick="pc('Stop')">
+                    <i class="ion-stop"></i>
+                </button>
+                <button type="button" class="btn btn-danger ml-2" onclick="pc('StartPrevious')">
+                    <i class="ion-skip-backward"></i>
+                </button>
+                <button type="button" class="btn btn-danger ml-2" onclick="pc('PlayOrPause')">
+                    <i class="ion-pause"></i>
+                </button>
+                <button type="button" class="btn btn-danger ml-2" onclick="pc('Start')">
+                    <i class="ion-play"></i>
+                </button>
+                <button type="button" class="btn btn-danger ml-2" onclick="pc('StartNext')">
+                    <i class="ion-skip-forward"></i>
+                </button>
+                <button type="button" class="btn btn-danger ml-2" onclick="pc('StartRandom')">
+                    <i class="ion-shuffle"></i>
+                </button>
+            </div>
+        </div>
+        <div class="container">
+            <div class="form-row inline-form">
+                <div class="col-auto">
+                    <select title="Playback order" class="form-control" onchange="pc('PlaybackOrder',this.value);">
+                        [PLAYBACK_ORDER_OPTION]
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <select title="Volume level" class="form-control" onchange="pc('Volume',this.value);">
+                        [VOLUME_OPTION]
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <input title="Stop after current" type="checkbox" class="form-control" [SAC]
+                           onclick="pc('SAC',this.checked?'1':'0');">
+                    <span class="text-white">SAC</span>
+                </div>
+                <div class="col-auto">
+                    <input title="Stop after queue" type="checkbox" class="form-control" [SAQ]
+                           onclick="pc('SAQ',this.checked?'1':'0');">
+                    <span class="text-white">SAQ</span>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-light" onclick="pc('QueueAlbum')">QA</button>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-light"
+                            onclick="n = prompt('How many items to queue?'); a = n != null? pc('QueueRandomItems', n) : false;">
+                        QR
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <select title="Playlist actions" class="form-control" id="Actions"
+                            onchange="act=this.selectedIndex;">
+                        <option>Start</option>
+                        <option>Enqueue</option>
+                        <option>Dequeue</option>
+                        <option>Focus</option>
+                        <option>Delete</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-light"
+                            onclick="if (confirm('Empty active playlist?')) pc('EmptyPlaylist'); else return false;">
+                        &#8212;
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <select class="form-control" onchange="pc('SwitchPlaylist',this.value);">
+                        [PLAYLISTS_OPTION]
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-light">
+                        <a href="/default/?cmd=Browse">...</a>
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <input type="text" size="9" class="form-control"
+                           onkeypress="document.cmd_form.cmd.value='SearchMediaLibrary'; document.cmd_form.param1.value=this.value;"
+                           value="[SEARCH_REQUEST]">
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-light" onclick="pc('QueryRetrace')">
+                        <i class="ion-search"></i>
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <select id="QueryAdvance" class="form-control" onchange="pc('QueryAdvance',this.value);">
+                        [QUERY_OPTION]
+                    </select>&nbsp;[QUERY_INFO]
+                </div>
+            </div>
+        </div>
+    </div>
+    <input name="cmd" type="hidden" value="">
+    <input name="param1" type="hidden" value="">
+    <script language="JavaScript" type="text/javascript">
+        <!--
+        with (document) {
+            act = [LAST_ACTION];
+            getElementById('Actions').selectedIndex = act;
+            var i_p;
+            if ('[PLAYLIST_ITEM_PLAYING]' != '?')
+                i_p = parseInt('[PLAYLIST_ITEM_PLAYING]') + 1;
+            else
+                i_p = '?';
+
+            if ([IS_PLAYING]) { // start progressbar if playing
+                t_playback_timer([ITEM_PLAYING_POS], [ITEM_PLAYING_LEN]);
+
+                if (([ITEM_PLAYING_LEN] > 0) && ([ITEM_PLAYING_POS] < [ITEM_PLAYING_LEN]))
+                    setTimeout('pc()', ([ITEM_PLAYING_LEN] - [ITEM_PLAYING_POS]) * 1000 + 500);
+                else if (([ITEM_PLAYING_POS] > [ITEM_PLAYING_LEN]))
+                    setTimeout('pc("RefreshPlayingInfo")', 15000);
+                else if ('[ITEM_PLAYING_LEN]' == '[ITEM_PLAYING_POS]' && '[ITEM_PLAYING_LEN]' != '?' && '[ITEM_PLAYING_LEN]' != '0')
+                    setTimeout('pc()', 500);
+
+                getElementById('status').innerHTML = '[ Playing ' + i_p + ' / [PLAYLIST_PLAYING_ITEMS_COUNT] ]';
+            }
+            else if ([IS_PAUSED]) { // adjust progressbar width if paused
+                set_np_width([ITEM_PLAYING_POS], [ITEM_PLAYING_LEN]);
+                set_t_pos([ITEM_PLAYING_POS]);
+                getElementById('status').innerHTML = '[ Paused ' + i_p + ' / [PLAYLIST_PLAYING_ITEMS_COUNT] ]';
+            } else { // hide unnecessary track info if stopped
+                counter = getElementById("counter");
+                if (counter)
+                    counter.innerHTML = "";
+                getElementById("status").innerHTML = "[ Stopped ]";
+                getElementById("npstr").style.visibility = "hidden";
+            }
+
+            if ([IS_ENQUEUEING]) {
+                getElementById('status').innerHTML = '[ Enqueuement in progress ] ' + getElementById('status').innerHTML;
+                setTimeout('pc()', 5000);
+            }
+
+            if (getElementById('trackInfo').innerHTML == '' && ([IS_PLAYING] || [IS_PAUSED])) // if playing but track info is not loaded yet, reload page
+                setTimeout('pc()', 500);
+
+            npp = getElementById("np");	// adjust progressbar width and height, and opacity hack for IE6
+            if (npp)
+                with (npp.style) {
+                    if (getElementById("np").offsetHeight >= 2)
+                        height = getElementById("np").offsetHeight * 2 - 2 + "px";
+                    left = getElementById("npd").offsetLeft + "px";
+                    filter = "alpha(opacity=50)";
+                }
+        }
+        //--></script>
+    <p class="text-center" style="color: #F00">[PLAYLIST_PAGES]</p>
+    <div class="container">
+        <table>
+            [PLAYLIST]
+            <tr>
+                <td id="totals">Produced By riSky</td>
+                <td class="playlist_time">[PLAYLIST_TOTAL_TIME]</td>
+                <td class="playlist_time">[QUEUE_TOTAL_TIME]</td>
+            </tr>
+        </table>
+    </div>
+    <!--[PGT]s-->
+</body>
+</html>
